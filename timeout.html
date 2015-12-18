@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>timeoutQueue</title>
+	<script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	var $timeout = function(t){
+		var dfd = $.Deferred();
+		setTimeout(function(){
+			dfd.resolve(t);
+		},t);
+		return dfd.promise();
+	}
+	var fn1 = function(){
+		console.log(1)
+		return $timeout(1000);
+	}
+	var fn2 = function(){
+		console.log(2)
+		return $timeout(1000);
+	}
+	var fn3 = function(){
+		console.log(3)
+		return $timeout(2000);
+	}
+
+	$.asyncQueue = function(fns,cb){
+		var dfd = $.Deferred();
+		var d = dfd.promise();
+		$.each(fns,function(k,fn){
+			d = d.then(function(){
+				d = fn().then(function(data){
+					typeof cb === 'function' && cb(data,k);
+				});
+				return d;
+			});
+		});
+		dfd.resolve();
+	}
+
+	$.asyncQueue([fn1,fn2,fn3],function(t,idx){
+		console.log(t,idx)
+	});
+
+});
+
+
+</script>	
+</head>
+<body>
+</body>
+</html>
