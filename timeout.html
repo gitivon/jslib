@@ -6,42 +6,49 @@
 	<script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
 <script type="text/javascript">
 $(function(){
-	var $timeout = function(t){
+	var $timeout = function(t) {
 		var dfd = $.Deferred();
-		setTimeout(function(){
+		setTimeout(function() {
 			dfd.resolve(t);
-		},t);
+		}, t);
 		return dfd.promise();
 	}
-	var fn1 = function(){
+	var fn1 = function() {
 		console.log(1)
 		return $timeout(1000);
 	}
-	var fn2 = function(){
+	var fn2 = function() {
 		console.log(2)
 		return $timeout(1000);
 	}
-	var fn3 = function(){
+	var fn3 = function() {
 		console.log(3)
-		return $timeout(2000);
+		return $timeout(1000);
+	}
+	var fn4 = function() {
+		console.log(4)
+		return $timeout(1000);
 	}
 
-	$.asyncQueue = function(fns,cb){
-		var dfd = $.Deferred();
-		var d = dfd.promise();
-		$.each(fns,function(k,fn){
-			d = d.then(function(){
-				d = fn().then(function(data){
-					typeof cb === 'function' && cb(data,k);
+	$.asyncQueue = function(fns, cb) {
+		var dfd = $.Deferred(),
+			d = dfd.promise(),
+			stop = false;
+		$.each(fns, function(k, fn) {
+			d = d.then(function() {
+				return stop || fn().then(function(data) {
+					stop = typeof cb === 'function' && cb(data, k) === false;
 				});
-				return d;
 			});
 		});
 		dfd.resolve();
 	}
 
-	$.asyncQueue([fn1,fn2,fn3],function(t,idx){
-		console.log(t,idx)
+	$.asyncQueue([fn1, fn2, fn3, fn4], function(t, idx) {
+		console.log(t, idx)
+		if (idx == 2) {
+			return false; 	// 停止队列
+		}
 	});
 
 });
