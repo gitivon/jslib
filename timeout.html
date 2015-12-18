@@ -36,20 +36,33 @@ $(function(){
 			stop = false;
 		$.each(fns, function(k, fn) {
 			d = d.then(function() {
-				return stop || fn().then(function(data) {
-					stop = typeof cb === 'function' && cb(data, k) === false;
+				return stop || fn().then(function() {
+					Array.prototype.unshift.call(arguments,k);
+					stop = typeof cb === 'function' && cb.apply(this, arguments) === false;
 				});
 			});
 		});
 		dfd.resolve();
 	}
 
-	$.asyncQueue([fn1, fn2, fn3, fn4], function(t, idx) {
-		console.log(t, idx)
+	$.asyncQueue([fn1, fn2, fn3, fn4], function(idx,t) {
+		console.log(idx,t)
 		if (idx == 2) {
 			return false; 	// 停止队列
 		}
 	});
+
+	/** ajax队列
+	$.asyncQueue([
+		$.ajax(...),
+		$.ajax(...),
+		$.ajax(...),
+		$.ajax(...),
+		$.ajax(...)
+	],function onSuccess(data,xhr){
+		
+	});
+	**/
 
 });
 
